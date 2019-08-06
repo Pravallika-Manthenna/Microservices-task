@@ -1,0 +1,68 @@
+version: "2.1"
+
+services:
+  mongo:
+    image: mongo:3.4-jessie
+    container_name: mongo-container
+    network_mode: host
+    hostname: localhost
+    restart: always
+    ports:
+      - 27017:27017
+    healthcheck:
+      test: "exit 0"
+
+  MuzixServer:
+    build: MuzixServer/
+    image: muzix-server
+    container_name: eureka-container
+    restart: always
+    network_mode: host
+    hostname: localhost
+    ports:
+      - 8761:8761
+    healthcheck:
+      test: "exit 0"
+
+  MuzixConfigServer:
+    build: MuzixConfigServer/
+    image: muzix-config-service
+    container_name: config-container 
+    restart: always
+    network_mode: host
+    hostname: localhost
+    ports:
+      - 8888:8888
+    healthcheck:
+      test: "exit 0"
+
+  apigateway:
+    build: spring-bootzuulgatwayproxy/
+    image: spring-bootzuulgatwayproxy
+    container_name: zuul-container
+    restart: always
+    network_mode: host
+    hostname: localhost
+    depends_on:
+      - MuzixServer
+      - MuzixAppMysql
+    ports:
+      - 8092:8092
+    healthcheck:
+      test: "exit 0"
+
+  MuzixAppMysql:
+    build: MuzixAppMysql/
+    image: muzix-assignment
+    container_name: muzix-container
+    restart: always
+    network_mode: host
+    hostname: localhost
+    ports:
+      - 8080:8080
+    depends_on:
+      - MuzixConfigServer
+      - MuzixServer
+      - mongo
+    healthcheck:
+      test: "exit 0"
